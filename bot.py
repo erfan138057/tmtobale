@@ -1,5 +1,6 @@
 import os
 import logging
+import asyncio
 import requests
 from telegram import Bot as TelegramBot
 
@@ -36,28 +37,31 @@ def send_to_bale(text):
         logger.error(f"❌ Connection error to Bale: {e}")
         return False
 
-def main():
+async def get_last_message(bot, channel):
+    try:
+        updates = await bot.get_updates(chat_id=channel, limit=1)
+        if not updates:
+            return None
+        for update in updates:
+            if update.channel_post:
+                return update.channel_post
+            if update.message:
+                return update.message
+        return None
+    except Exception as e:
+        logger.error(f"❌ Error getting updates from {channel}: {e}")
+        return None
+
+async def main():
     try:
         tg_bot = TelegramBot(token=TELEGRAM_TOKEN)
         logger.info(f"🚀 Starting to fetch from {len(channels)} channels...")
 
         for channel in channels:
             try:
-                updates = tg_bot.get_updates(chat_id=channel, limit=1)
-                if not updates:
-                    logger.info(f"📭 {channel}: No new messages.")
-                    continue
-
-                last_message = None
-                for update in updates:
-                    if update.channel_post:
-                        last_message = update.channel_post
-                        break
-                    if update.message:
-                        last_message = update.message
-                        break
-
+                last_message = await get_last_message(tg_bot, channel)
                 if not last_message:
+                    logger.info(f"📭 {channel}: No new messages.")
                     continue
 
                 text = last_message.text or last_message.caption or "(No text)"
@@ -74,4 +78,4 @@ def main():
         raise
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
