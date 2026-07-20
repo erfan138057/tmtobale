@@ -1,30 +1,21 @@
-name: Run Telegram to Bale Bot
+name: Telegram Scraper
 
 on:
   schedule:
-    - cron: '0 */2 * * *'
+    - cron: "0 */2 * * *"
   workflow_dispatch:
 
 jobs:
-  run-bot:
+  run:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      
-      - name: Run bot
-        run: python bot.py
-        env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          BALE_TOKEN: ${{ secrets.BALE_TOKEN }}
-          CHANNELS_LIST: ${{ secrets.CHANNELS_LIST }}
-          BALE_CHAT_ID: ${{ secrets.BALE_CHAT_ID }}
+          python-version: "3.11"
+
+      - run: pip install -r requirements.txt
+
+      - run: python bot.py
