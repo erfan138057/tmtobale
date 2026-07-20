@@ -108,40 +108,40 @@ def get_channel_posts(channel):
 def send_to_bale(text):
 
     if not BALE_TOKEN or not BALE_CHAT_ID:
-        print("Bale secrets missing")
+        print("❌ Bale secrets missing")
         return
 
-
     url = (
-        f"https://safir.bale.ai/v3/bot"
+        f"https://tapi.bale.ai/bot"
         f"{BALE_TOKEN}/sendMessage"
     )
-
 
     payload = {
         "chat_id": BALE_CHAT_ID,
         "text": text
     }
 
-
     try:
-
         r = requests.post(
             url,
             json=payload,
             timeout=20
         )
 
-
         if r.status_code == 200:
-            print("✅ Sent to Bale")
+            result = r.json()
+
+            if result.get("ok"):
+                print("✅ Sent to Bale")
+            else:
+                print("❌ Bale API Error:", result)
 
         else:
-            print("❌ Bale error:", r.text)
-
+            print("❌ HTTP Error:", r.status_code)
+            print(r.text)
 
     except Exception as e:
-        print("Bale connection error:", e)
+        print("❌ Connection Error:", e)
 
 
 
