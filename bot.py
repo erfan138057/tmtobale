@@ -37,24 +37,22 @@ def send_to_bale(text):
         logger.error(f"❌ Connection error to Bale: {e}")
         return False
 
-async def get_channel_messages(bot, channel_username):
+async def get_channel_messages(bot, channel_username, limit=10):
     try:
-        # Get chat entity first
         chat = await bot.get_chat(channel_username)
+        updates = await bot.get_updates(limit=limit)
         
-        # Get updates from this chat
-        updates = await bot.get_updates(limit=5)
-        
-        # Filter updates for this channel
+        messages = []
         for update in updates:
             if update.channel_post and update.channel_post.chat_id == chat.id:
-                return update.channel_post
+                messages.append(update.channel_post)
             if update.message and update.message.chat_id == chat.id:
-                return update.message
-        return None
+                messages.append(update.message)
+        
+        return messages
     except Exception as e:
         logger.error(f"❌ Error getting messages from {channel_username}: {e}")
-        return None
+        return []
 
 async def main():
     try:
@@ -63,14 +61,20 @@ async def main():
 
         for channel in channels:
             try:
-                last_message = await get_channel_messages(tg_bot, channel)
-                if not last_message:
-                    logger.info(f"📭 {channel}: No new messages.")
+                messages = await get_channel_messages(tg_bot, channel, limit=10)
+                
+                if not messages:
+                    logger.info(f"📭 {channel}: No messages found.")
                     continue
-
-                text = last_message.text or last_message.caption or "(No text)"
-                send_to_bale(f"📢 {channel}\n\n{text}")
-                logger.info(f"✅ Message from {channel} sent.")
+                
+                logger.info(f"📝 {channel}: Found {len(messages)} messages.")
+                
+                for msg in messages:
+                    text = msg.text or msg.caption or "(No text)"
+                    send_to_bale(f"📢 {channel}\n\n{text}")
+                    logger.info(f"✅ Message from {channel} sent.")
+                
+                logger.info(f"✅ All {len(messages)} messages from {channel} sent.")
 
             except Exception as e:
                 logger.error(f"❌ Error processing {channel}: {e}")
