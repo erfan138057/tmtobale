@@ -1,0 +1,30 @@
+name: Run Telegram to Bale Bot
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: دریافت کد از مخزن
+        uses: actions/checkout@v4
+      
+      - name: نصب پایتون
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: نصب کتابخانه‌ها
+        run: pip install -r requirements.txt
+      
+      - name: اجرای ربات
+        run: python bot.py
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          BALE_TOKEN: ${{ secrets.BALE_TOKEN }}
+          CHANNELS_LIST: ${{ secrets.CHANNELS_LIST }}
+          BALE_CHAT_ID: ${{ secrets.BALE_CHAT_ID }}
